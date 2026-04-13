@@ -27,23 +27,23 @@ jobs:
 
       - name: deploy from s3 to ec2 using SSM
         run: |
-            cat > commands.json << EOF
-            {
-                "commands": [
-                "sudo yum install -y nginx",
-                "sudo systemctl enable nginx",
-                "sudo aws s3 sync s3://${{ secrets.S3_BUCKET_NAME }}/html/ /usr/share/nginx/html/ --delete",
-                "sudo chown -R ec2-user:nginx /usr/share/nginx/html/",
-                "sudo chmod 644 /usr/share/nginx/html/index.html",
-                "sudo systemctl reload-or-restart nginx"
-                ]
-            }
-            EOF
+          python3 -c "
+          import json
+          params = {'commands': [
+            'sudo yum install -y nginx',
+            'sudo systemctl enable nginx',
+            'sudo aws s3 sync s3://${{ secrets.S3_BUCKET_NAME }}/html/ /usr/share/nginx/html/ --delete',
+            'sudo chown -R ec2-user:nginx /usr/share/nginx/html/',
+            'sudo chmod 644 /usr/share/nginx/html/index.html',
+            'sudo systemctl reload-or-restart nginx'
+          ]}
+          open('commands.json','w').write(json.dumps(params))
+          "
 
-            aws ssm send-command \
-                --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
-                --document-name "AWS-RunShellScript" \
-                --parameters file://commands.json \
-                --comment "Deploy files from S3 to EC2 and restart Nginx" \
-                --timeout-seconds 600 \
-                --region ${{ secrets.AWS_REGION }}
+          aws ssm send-command \
+            --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
+            --document-name "AWS-RunShellScript" \
+            --parameters file://commands.json \
+            --comment "Deploy files from S3 to EC2 and restart Nginx" \
+            --timeout-seconds 600 \
+            --region ${{ secrets.AWS_REGION }}
