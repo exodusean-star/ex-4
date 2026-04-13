@@ -1,4 +1,4 @@
-name: nginx-deployment SSM and S3 #titleTlqkf
+name: nginx-deployment SSM and S3 #titleTlqkf22
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: aws자격 증명 설정
+      - name: aws자격 증명 설정 
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
