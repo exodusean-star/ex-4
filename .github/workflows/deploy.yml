@@ -1,4 +1,4 @@
-name: nginx-deployment SSM and S3 #title
+name: nginx-deployment SSM and S3 #title22
 
 on:
   push:
