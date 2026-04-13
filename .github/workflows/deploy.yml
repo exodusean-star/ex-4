@@ -23,7 +23,7 @@ jobs:
 
       - name: s3버킷으로 파일 업로드
         run: |
-          aws s3 sync html s3://${{ secrets.S3_BUCKET_NAME }}/html/ --delete
+          aws s3 sync html s3://${{ secrets.S3_BUCKET_NAME }}/html/ --delete    #다시 체크
 
       - name: deploy from s3 to ec2 using SSM
         run: |
