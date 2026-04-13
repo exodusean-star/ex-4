@@ -1,4 +1,4 @@
-name: nginx-deployment SSM and S3 #title
+name: nginx-deployment SSM and S3
 
 on:
   push:
@@ -23,21 +23,16 @@ jobs:
 
       - name: s3버킷으로 파일 업로드
         run: |
-          aws s3 sync html s3://${{ secrets.S3_BUCKET_NAME }}/html/ --delete    #다시 체크
+          aws s3 sync html s3://${{ secrets.S3_BUCKET_NAME }}/html/ --delete
 
       - name: deploy from s3 to ec2 using SSM
         run: |
+          COMMANDS='["sudo yum install -y nginx","sudo systemctl enable nginx","sudo aws s3 sync s3://${{ secrets.S3_BUCKET_NAME }}/html/ /usr/share/nginx/html/ --delete","sudo chown -R ec2-user:nginx /usr/share/nginx/html/","sudo chmod 644 /usr/share/nginx/html/index.html","sudo systemctl reload-or-restart nginx"]'
+
           aws ssm send-command \
-          --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
-          --document-name "AWS-RunShellScript" \
-          --parameters "commands=[
-              \"sudo yum install -y nginx\",
-              \"sudo systemctl start nginx\",
-              \"sudo aws s3 sync s3://${{ secrets.S3_BUCKET_NAME }}/html/ /usr/share/nginx/html/ --delete\",
-              \"sudo chown -R ec2-user:nginx /usr/share/nginx/html/\",
-              \"sudo chmod 644 /usr/share/nginx/html/index.html\",
-              \"sudo systemctl reload nginx\"
-          ]" \
-          --comment "Deploy files from S3 to EC2 and restart Nginx" \
-          --timeout-seconds 600 \
-          --region ${{ secrets.AWS_REGION }}
+            --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters commands="$COMMANDS" \
+            --comment "Deploy files from S3 to EC2 and restart Nginx" \
+            --timeout-seconds 600 \
+            --region "${{ secrets.AWS_REGION }}"
